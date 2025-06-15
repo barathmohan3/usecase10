@@ -1,4 +1,4 @@
-name: Provision Infra using Terraform via EC2
+name: FocalBoard Infra Provision using Terraform via EC2
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   provision:
-    name: Terraform Infra via EC2
+    name: Terraform Setup
     runs-on: ubuntu-latest
 
     steps:
@@ -36,63 +36,216 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Terraform format
-        run: terraform fmt
+  init:
+    name: Terraform Initiation
+    runs-on: ubuntu-latest
+    needs: provision
 
-      - name: Terraform init
-        run: terraform init
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Terraform validate
-        run: terraform validate
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::650251701672:role/s3-github
+          aws-region: us-east-2
 
-      - name: Install Checkov
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install checkov
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
 
-      - name: Run Checkov Scan
-        run: checkov -d ./ --skip-path .github/* --soft-fail
+      - name: Terraform Init
+        run: terraform init 
 
-      - name: Install tflint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+  Validation:
+      name: Terraform Validation & Formatting
+      runs-on: ubuntu-latest
+      needs: init
+    
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
 
-      - name: Run tflint with custom config
-        run: |
-          echo "Using custom rules from .tflint.hcl"
-          tflint --config=./.tflint.hcl
-        continue-on-error: true
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            role-to-assume: arn:aws:iam::650251701672:role/s3-github
+            aws-region: us-east-2
 
-      - name: Terraform plan
-        run: terraform plan
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: 1.10.5
 
-      - name: Install terraform-docs
-        run: |
-          curl -sSLo terraform-docs.tar.gz https://terraform-docs.io/dl/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz
-          tar -xzf terraform-docs.tar.gz
-          chmod +x terraform-docs
-          sudo mv terraform-docs /usr/local/bin/
+        - name: Terraform Init
+          run: terraform init 
+
+        - name: Terraform format
+          run: terraform fmt
+
+        - name: Terraform validate
+          run: terraform validate
+  
+  Checkov:
+      name: Checkov Checker
+      runs-on: ubuntu-latest
+      needs: Validation 
+
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            role-to-assume: arn:aws:iam::650251701672:role/s3-github
+            aws-region: us-east-2
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: 1.10.5
+
+        - name: Terraform Init
+          run: terraform init
+ 
+        - name: Install Checkov
+          run: |
+           python3 -m pip install --upgrade pip
+           pip install checkov
+
+        - name: Run Checkov Scan
+          run: checkov -d ./ --skip-path .github/* --soft-fail
+  Lint:
+      name: TFLint Check
+      runs-on: ubuntu-latest
+      needs: Checkov  
+
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            role-to-assume: arn:aws:iam::650251701672:role/s3-github
+            aws-region: us-east-2
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: 1.10.5
+
+        - name: Terraform Init
+          run: terraform init
+   
+        - name: Install tflint
+          run: |
+           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+        - name: Run tflint with custom config
+          run: |
+           echo "Using custom rules from .tflint.hcl"
+           tflint --config=./.tflint.hcl
+           continue-on-error: true
+    
+  Plan:
+      name: Terraform Plan & ReadMe Generator
+      runs-on: ubuntu-latest
+      needs: Lint  
+
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            role-to-assume: arn:aws:iam::650251701672:role/s3-github
+            aws-region: us-east-2
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: 1.10.5
+
+        - name: Terraform Init
+          run: terraform init
+ 
+        - name: Terraform plan
+          run: terraform plan
+
+        - name: Install terraform-docs
+          run: |
+           curl -sSLo terraform-docs.tar.gz https://terraform-docs.io/dl/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz
+           tar -xzf terraform-docs.tar.gz
+           chmod +x terraform-docs
+           sudo mv terraform-docs /usr/local/bin/
 
 
-      - name: Generate Terraform Docs
-        run: |
-          terraform-docs markdown table . > README.md
+        - name: Generate Terraform Docs
+          run: |
+           terraform-docs markdown table . > README.md
 
-      - name: Commit Terraform Docs
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add README.md
-          git commit -m "Update Terraform docs [skip ci]" || echo "No changes to commit"
-          git push
+        - name: Commit Terraform Docs
+          run: |
+           git config --global user.name "github-actions"
+           git config --global user.email "github-actions@github.com"
+           git add README.md
+           git commit -m "Update Terraform docs [skip ci]" || echo "No changes to commit"
+           git push
       # 📘 Terraform Docs Integration Ends Here
-      - name: Terraform plan
-        run: terraform plan
+        - name: Terraform plan
+          run: terraform plan
+  
+  Final:
+      name: Terraform ${{ github.event.inputs.action }}
+      runs-on: ubuntu-latest
+      needs: Plan 
 
-      - name: Terraform Apply or Destroy
-        run: |
-          if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v4
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v2
+          with:
+            role-to-assume: arn:aws:iam::650251701672:role/s3-github
+            aws-region: us-east-2
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: 1.10.5
+
+        - name: Terraform Init
+          run: terraform init
+
+        - name: Terraform ${{ github.event.inputs.action }}
+          run: |
+           if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
             terraform destroy -auto-approve
-          else
+           else
             terraform apply -auto-approve
-          fi
+           fi
+
+  docs:
+    name: Render Terraform Docs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Render terraform docs and push changes back to PR
+        uses: terraform-docs/gh-actions@v1.1.0
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: inject
+          git-push: true
