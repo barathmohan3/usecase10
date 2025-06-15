@@ -223,7 +223,7 @@ jobs:
         - name: Terraform Init
           run: terraform init
 
-        - name: Terraform ${{ github.event.inputs.action }}
+        - name: Terraform "${{ github.event.inputs.action }}"
           run: |
            if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
             terraform destroy -auto-approve
