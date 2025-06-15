@@ -12,6 +12,8 @@ on:
           - apply
           - destroy
 
+  pull_request:
+
 permissions:
   id-token: write
   contents: write
