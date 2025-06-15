@@ -1,18 +1,10 @@
+config {
+  terraform_version = ">= 1.0.0"
+  plugin_dir        = ".tflint.d/plugins"
+}
+
 plugin "aws" {
   enabled = true
-}
- 
-rule "terraform_version" {
-  enabled = true
-  version = ">= 1.0"
-}
- 
-rule "aws_s3_bucket_versioning" {
-  enabled = true
-  message = "S3 buckets must have versioning enabled."
-  check = {
-    resource = "aws_s3_bucket"
-    key      = "versioning"
-    value    = "Enabled"
-  }
+  version = "0.13.4"
+  source  = "github.com/terraform-linters/tflint-ruleset-aws"
 }
