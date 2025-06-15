@@ -215,10 +215,11 @@ jobs:
           run: |
            git config --global user.name "github-actions"
            git config --global user.email "github-actions@github.com"
+           git pull --rebase origin main || true
            git add README.md
            git commit -m "Update Terraform docs [skip ci]" || echo "No changes to commit"
            git push
-      # 📘 Terraform Docs Integration Ends Here
+      #  Terraform Docs Integration Ends Here
         - name: Terraform plan
           run: terraform plan
   
