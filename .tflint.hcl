@@ -1,5 +1,24 @@
 plugin "aws" {
   enabled = true
-  version = "0.13.4"
-  source  = "github.com/terraform-linters/tflint-ruleset-aws"
+}
+ 
+rule "terraform_version" {
+  enabled = true
+  version = ">= 1.0"
+}
+
+
+rule "terraform_naming_convention" {
+  enabled = true
+  variables = "snake_case"
+  outputs   = "snake_case"
+  resources = "snake_case"
+}
+
+rule "terraform_unused_declarations" {
+  enabled = true
+}
+
+rule "terraform_deprecated_syntax" {
+  enabled = true
 }
