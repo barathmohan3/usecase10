@@ -1,4 +1,4 @@
-name: FocalBoard Infra Provision using Terraform via EC2
+name: FocalBoard Infra Provision using  via EC2
 
 on:
   workflow_dispatch:
