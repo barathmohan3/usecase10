@@ -1,10 +1,7 @@
+# policy/deny_public_s3.rego
 package main
- 
-import future.keywords.in
- 
+
 deny[msg] {
-  some r in input.resource_changes
-  r.type == "aws_s3_bucket"
-  r.change.after.acl == "public-read"
-  msg := "S3 bucket is public!"
+  input.resource_changes[_].change.after.bucket == "my-public-bucket"
+  msg = "Public S3 bucket is not allowed."
 }
