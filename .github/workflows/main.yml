@@ -179,7 +179,7 @@ jobs:
           run: terraform plan
   
   Final:
-      name: Terraform ${{ github.event.inputs.action }}
+      name: Run Terraform
       runs-on: ubuntu-latest
       needs: Plan 
 
