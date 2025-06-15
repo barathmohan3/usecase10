@@ -149,7 +149,7 @@ jobs:
           run: |
            echo "Using custom rules from .tflint.hcl"
            tflint --config=./.tflint.hcl
-           continue-on-error: true
+           continue-on-error: true 
     
   Plan:
       name: Terraform Plan & ReadMe Generator
