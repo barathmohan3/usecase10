@@ -1,8 +1,3 @@
-config {
-  terraform_version = ">= 1.0.0"
-  plugin_dir        = ".tflint.d/plugins"
-}
-
 plugin "aws" {
   enabled = true
   version = "0.13.4"
