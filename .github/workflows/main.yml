@@ -118,29 +118,7 @@ jobs:
 
         - name: Run Checkov Scan
           run: checkov -d ./ --skip-path .github/* --soft-fail
-  Lint:
-      name: TFLint Check
-      runs-on: ubuntu-latest
-      needs: Checkov  
-
-      steps:
-        - name: Checkout repo
-          uses: actions/checkout@v4
-
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v2
-          with:
-            role-to-assume: arn:aws:iam::650251701672:role/s3-github
-            aws-region: us-east-2
-
-        - name: Setup Terraform
-          uses: hashicorp/setup-terraform@v3
-          with:
-            terraform_version: 1.10.5
-
-        - name: Terraform Init
-          run: terraform init
-   
+        
         - name: Install tflint
           run: |
            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
@@ -150,11 +128,11 @@ jobs:
            echo "Using custom rules from .tflint.hcl"
            tflint --config=./.tflint.hcl
            continue-on-error: true 
-    
+     
   Plan:
       name: Terraform Plan & ReadMe Generator
       runs-on: ubuntu-latest
-      needs: Lint  
+      needs: Checkov  
 
       steps:
         - name: Checkout repo
