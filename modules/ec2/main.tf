@@ -25,23 +25,13 @@ resource "aws_security_group" "focal_sg" {
   }
 }
 
-resource "tls_private_key" "focalboard_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-resource "aws_key_pair" "focalboard_key" {
-  key_name   = "focalboard-key"  # this name will show in AWS
-  public_key = tls_private_key.focalboard_key.public_key_openssh
-}
-
 resource "aws_instance" "focal_ec2" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_ids[0]
   vpc_security_group_ids      = [aws_security_group.focal_sg.id]
   associate_public_ip_address = true
-  key_name                    = aws_key_pair.focalboard_key.key_name
+  key_name                    = var.key_name
 
   user_data = <<-EOF
               #!/bin/bash
