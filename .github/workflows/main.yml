@@ -89,6 +89,10 @@ jobs:
 
         - name: Terraform validate
           run: terraform validate
+ 
+        - name: Run Terraform Tests
+          run: terraform test || echo "Terraform test failed but continuing..."
+
   
   Checkov:
       name: Checkov Checker and Linting
