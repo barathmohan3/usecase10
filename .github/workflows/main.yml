@@ -66,6 +66,29 @@ jobs:
       - name: Terraform plan
         run: terraform plan
 
+      - name: Install terraform-docs
+        run: |
+          curl -sSLo terraform-docs.tar.gz https://terraform-docs.io/dl/v0.20.0/terraform-docs-v0.20.0-linux-amd64.tar.gz
+          tar -xzf terraform-docs.tar.gz
+          chmod +x terraform-docs
+          sudo mv terraform-docs /usr/local/bin/
+
+
+      - name: Generate Terraform Docs
+        run: |
+          terraform-docs markdown table . > README.md
+
+      - name: Commit Terraform Docs
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add README.md
+          git commit -m "Update Terraform docs [skip ci]" || echo "No changes to commit"
+          git push
+      # 📘 Terraform Docs Integration Ends Here
+      - name: Terraform plan
+        run: terraform plan
+
       - name: Terraform Apply or Destroy
         run: |
           if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
