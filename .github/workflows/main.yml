@@ -229,8 +229,7 @@ jobs:
   
   Final:
       name: Run Terraform
-      runs-on: ubuntu-latest
-      needs: Plan 
+      runs-on: ubuntu-latest 
 
       steps:
         - name: Checkout repo
