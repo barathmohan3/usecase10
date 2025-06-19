@@ -1,10 +1,10 @@
-run "setup_tests" {
+run "check_mfa_enabled" {
   module {
     source = "./."
   }
 
   assert {
-    condition = module.output.instance_type == "t2.micro"
-    error_message = "Expected instance type to be t2.micro"
+    condition = module.cognito_user_pool.mfa_configuration == "ON"
+    error_message = "MFA should be enabled for Cognito User Pool"
   }
 }
